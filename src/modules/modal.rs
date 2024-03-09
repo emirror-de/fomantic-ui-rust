@@ -44,6 +44,15 @@ extern "C" {
     #[wasm_bindgen(js_name = "$", catch)]
     fn new_modal_from_selector(selector: &JsValue) -> Result<Modal, JsValue>;
 
+    /// Internal function to create the modal alert template.
+    #[wasm_bindgen(js_namespace=["$"], js_name="modal")]
+    fn new_modal_alert(
+        props: &JsValue,
+        title: String,
+        content: String,
+        handler: &Closure<dyn Fn()>,
+    ) -> Modal;
+
     #[wasm_bindgen(method, js_name = "modal")]
     pub fn modal(this: &Modal, behavior: &JsValue);
 
@@ -57,6 +66,17 @@ impl Modal {
         let modal_config_js =
             <JsValue as JsValueSerdeExt>::from_serde(&config).map_err(|e| anyhow!(e))?;
         Ok(new_modal(&modal_config_js))
+    }
+
+    /// Creates an `Alert` modal.
+    pub fn new_alert<H: 'static>(title: String, content: String, handler: H) -> anyhow::Result<Self>
+    where
+        H: Fn(),
+    {
+        let handler = Closure::new(handler);
+        let result = new_modal_alert(&JsValue::from("alert"), title, content, &handler);
+        handler.forget();
+        Ok(result)
     }
 
     /// Queries the modal by the given selector.
