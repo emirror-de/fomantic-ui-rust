@@ -53,6 +53,24 @@ extern "C" {
         handler: &Closure<dyn Fn()>,
     ) -> Modal;
 
+    /// Internal function to create the modal confirm template.
+    #[wasm_bindgen(js_namespace=["$"], js_name="modal")]
+    fn new_modal_confirm(
+        props: &JsValue,
+        title: String,
+        content: String,
+        handler: &Closure<dyn Fn(bool)>,
+    ) -> Modal;
+
+    /// Internal function to create the modal prompt template.
+    #[wasm_bindgen(js_namespace=["$"], js_name="modal")]
+    fn new_modal_prompt(
+        props: &JsValue,
+        title: String,
+        content: String,
+        handler: &Closure<dyn Fn(String)>,
+    ) -> Modal;
+
     #[wasm_bindgen(method, js_name = "modal")]
     pub fn modal(this: &Modal, behavior: &JsValue);
 
@@ -75,6 +93,36 @@ impl Modal {
     {
         let handler = Closure::new(handler);
         let result = new_modal_alert(&JsValue::from("alert"), title, content, &handler);
+        handler.forget();
+        Ok(result)
+    }
+
+    /// Creates a `Confirm` modal.
+    pub fn new_confirm<H: 'static>(
+        title: String,
+        content: String,
+        handler: H,
+    ) -> anyhow::Result<Self>
+    where
+        H: Fn(bool),
+    {
+        let handler = Closure::new(handler);
+        let result = new_modal_confirm(&JsValue::from("confirm"), title, content, &handler);
+        handler.forget();
+        Ok(result)
+    }
+
+    /// Creates a `Prompt` modal.
+    pub fn new_prompt<H: 'static>(
+        title: String,
+        content: String,
+        handler: H,
+    ) -> anyhow::Result<Self>
+    where
+        H: Fn(String),
+    {
+        let handler = Closure::new(handler);
+        let result = new_modal_prompt(&JsValue::from("prompt"), title, content, &handler);
         handler.forget();
         Ok(result)
     }
