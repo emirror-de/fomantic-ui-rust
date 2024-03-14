@@ -68,7 +68,7 @@ extern "C" {
         props: &JsValue,
         title: String,
         content: String,
-        handler: &Closure<dyn Fn(String)>,
+        handler: &Closure<dyn Fn(Option<String>)>,
     ) -> Modal;
 
     #[wasm_bindgen(method, js_name = "modal")]
@@ -119,7 +119,7 @@ impl Modal {
         handler: H,
     ) -> anyhow::Result<Self>
     where
-        H: Fn(String),
+        H: Fn(Option<String>),
     {
         let handler = Closure::new(handler);
         let result = new_modal_prompt(&JsValue::from("prompt"), title, content, &handler);
