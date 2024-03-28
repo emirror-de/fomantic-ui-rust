@@ -1,5 +1,8 @@
 //! Toast bindings.
-
+use crate::{
+    action::JsActionConfig,
+    Action,
+};
 use wasm_bindgen::prelude::*;
 
 /// Display time of the [Toast].
@@ -157,7 +160,7 @@ impl ToastConfig {
     }
 
     /// Sets the actions shown on the toast.
-    pub fn with_actions(mut self, actions: Vec<ToastAction>) -> Self {
+    pub fn with_actions(mut self, actions: Vec<Action>) -> Self {
         let mut js_actions = vec![];
         for act in actions {
             self.action_handler_list.push(act.click);
@@ -168,73 +171,8 @@ impl ToastConfig {
     }
 }
 
-/// Configuration for a [Toast] action.
-pub struct ToastAction {
-    click: Closure<dyn Fn() -> bool>,
-    pub(crate) js_config: JsToastActionConfig,
-}
-
-impl ToastAction {
-    /// Creates a new [Toast] configuration.
-    pub fn new() -> Self {
-        let js_config = JsToastActionConfig::new();
-        let click = Closure::new(|| true);
-        Self { js_config, click }
-    }
-
-    /// Sets the text shown on the action.
-    pub fn with_text(self, text: &str) -> Self {
-        self.js_config.set_text(text);
-        self
-    }
-
-    /// Sets the CSS class name of the action.
-    pub fn with_class(self, class: &str) -> Self {
-        self.js_config.set_class(class);
-        self
-    }
-
-    /// Sets the icon of the action.
-    pub fn with_icon(self, icon: &str) -> Self {
-        self.js_config.set_icon(icon);
-        self
-    }
-
-    /// Sets the handler that is fired on click.
-    pub fn click<H: Fn() -> bool + 'static>(mut self, click: H) -> Self {
-        self.click = Closure::new(click);
-        self.js_config.set_click(&self.click);
-        self
-    }
-}
-
 #[wasm_bindgen]
 extern "C" {
-
-    /// The JavaScript configuration object for toast actions.
-    #[wasm_bindgen(js_name = Object)]
-    pub(crate) type JsToastActionConfig;
-
-    /// Configuration constructor for toast actions.
-    #[wasm_bindgen(constructor, js_class = Object)]
-    pub(crate) fn new() -> JsToastActionConfig;
-
-    /// Set the text of the action.
-    #[wasm_bindgen(method, setter, js_name = "text")]
-    pub(crate) fn set_text(this: &JsToastActionConfig, text: &str);
-
-    /// Set the CSS class of the action.
-    #[wasm_bindgen(method, setter, js_name = "class")]
-    pub(crate) fn set_class(this: &JsToastActionConfig, class: &str);
-
-    /// Set the icon of the action.
-    #[wasm_bindgen(method, setter, js_name = "icon")]
-    pub(crate) fn set_icon(this: &JsToastActionConfig, icon: &str);
-
-    /// Set the click handler.
-    #[wasm_bindgen(method, setter, js_name = "click")]
-    pub(crate) fn set_click(this: &JsToastActionConfig, click: &Closure<dyn Fn() -> bool>);
-
     /// The JavaScript configuration object.
     #[wasm_bindgen(js_name = Object)]
     pub(crate) type JsToastConfig;
@@ -273,7 +211,10 @@ extern "C" {
 
     /// Set the progress bar position.
     #[wasm_bindgen(method, setter, js_name = "showProgress")]
-    pub(crate) fn set_progress_bar_position(this: &JsToastConfig, position: &str);
+    pub(crate) fn set_progress_bar_position(
+        this: &JsToastConfig,
+        position: &str,
+    );
 
     /// Set the progress bar css class name.
     #[wasm_bindgen(method, setter, js_name = "classProgress")]
@@ -285,7 +226,10 @@ extern "C" {
 
     /// Set actions shown in the toast.
     #[wasm_bindgen(method, setter, js_name = "actions")]
-    pub(crate) fn set_actions(this: &JsToastConfig, value: Box<[JsToastActionConfig]>);
+    pub(crate) fn set_actions(
+        this: &JsToastConfig,
+        value: Box<[JsActionConfig]>,
+    );
 
     /// Set the actions css class name.
     #[wasm_bindgen(method, setter, js_name = "classActions")]
@@ -293,7 +237,10 @@ extern "C" {
 
     /// Set the handler.
     #[wasm_bindgen(method, setter, js_name = "handler")]
-    pub(crate) fn set_handler(this: &JsToastConfig, handler: &Closure<dyn Fn()>);
+    pub(crate) fn set_handler(
+        this: &JsToastConfig,
+        handler: &Closure<dyn Fn()>,
+    );
 
     /// A toast.
     pub type Toast;
@@ -333,7 +280,11 @@ impl Toast {
     }
 
     /// Shorthand function for a [Toast] with a message and progress bar.
-    pub fn titled_progress_bar(title: &str, message: &str, progress_bar: ToastProgressBar) -> Self {
+    pub fn titled_progress_bar(
+        title: &str,
+        message: &str,
+        progress_bar: ToastProgressBar,
+    ) -> Self {
         let config = JsToastConfig::new();
         config.set_title(title);
         config.set_message(message);
