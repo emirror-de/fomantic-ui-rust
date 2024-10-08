@@ -11,7 +11,7 @@ pub fn Checkbox<D, El>(
     checkbox_wrapper: Box<dyn Fn() -> HtmlElement<El>>,
     data: RwSignal<SelectableData<D>>,
     #[prop(optional)] label_wrapper: Option<Box<dyn Fn() -> HtmlElement<El>>>,
-    label_fn: Box<dyn Fn() -> &'static str>,
+    label_fn: Box<dyn Fn(&D) -> String>,
 ) -> impl IntoView
 where
     D: 'static,
@@ -40,7 +40,7 @@ where
 
     let label_view = view! {
         <label>
-        { label_fn }
+        { move || data.with(|d| label_fn(&d.data))  }
         </label>
     };
     let label_wrapper = if let Some(wrapper) = label_wrapper {
