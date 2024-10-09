@@ -1,19 +1,14 @@
 //! Intermediary models to be used with different components.
-#[cfg(feature = "leptos")]
-use leptos::RwSignal;
 
-/// Contains data with an additional field wether it has been selected or not.
-pub struct SelectableData<D> {
-    /// Wether the data has been selected.
-    pub is_selected: bool,
-    /// The actual data.
-    pub data: D,
-}
-
-impl<D> SelectableData<D> {
-    /// Creates a new instance, wrapped into an [RwSignal].
-    #[cfg(feature = "leptos")]
-    pub fn new(data: D, is_selected: bool) -> RwSignal<Self> {
-        RwSignal::new(Self { is_selected, data })
-    }
+/// Implementors get the ability to be selected, unselected or toggled.
+/// Useful for eg. checkboxes with data attached.
+pub trait Selectable {
+    /// Selects the data.
+    fn select(&mut self);
+    /// Unselects the data.
+    fn deselect(&mut self);
+    /// Toggles the selection of the data.
+    fn toggle(&mut self);
+    /// Returns the current selection state.
+    fn is_selected(&self) -> bool;
 }

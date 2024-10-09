@@ -13,12 +13,13 @@ categories = ["web-programming", "api-bindings"]
 keywords = ["fomantic-ui", "css", "framework", "bindings"]
 
 [features]
-leptos = ["dep:leptos", "models"]
+leptos = ["models", "dep:leptos", "dep:leptos_meta"]
 models = []
 
 [dependencies]
 anyhow = "1"
 gloo = { version = "0.11", features = ["utils"] }
 leptos = { version = "0.6.15", features = ["csr"], optional = true }
+leptos_meta = { version = "0.6.15", features = ["csr"], optional = true }
 serde = { version = "1", features = ["derive"] }
 wasm-bindgen = "0.2"
