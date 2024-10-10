@@ -37,7 +37,7 @@ pub fn Table<D, R>(
     #[prop(into)]
     data: MaybeSignal<D>,
     /// A list of closures defining the column heading.
-    column_heading: Vec<Box<dyn Fn() -> Fragment>>,
+    column_heading: Vec<Box<dyn Fn(NodeRef<html::Th>) -> Fragment>>,
     /// A list of closures that return the contents of each column.
     columns: Vec<Box<dyn Fn(&R) -> Fragment>>,
 ) -> impl IntoView
@@ -48,8 +48,19 @@ where
     // Used for inserting custom sort algorithms via leptos-meta
     provide_meta_context();
 
-    let heading_items =
-        move || column_heading.iter().map(|head| head()).collect::<Vec<_>>();
+    let heading_items = column_heading
+        .into_iter()
+        .map(|head| {
+            move || {
+                let ref_th = create_node_ref::<html::Th>();
+                view! {
+                    <th node_ref=ref_th>
+                        { head(ref_th) }
+                    </th>
+                }
+            }
+        })
+        .collect::<Vec<_>>();
 
     let ref_table = create_node_ref::<leptos::html::Table>();
     let init_table = move || {
