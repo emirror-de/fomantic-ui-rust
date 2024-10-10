@@ -7,5 +7,8 @@ mod table_row;
 
 pub use checkbox::Checkbox;
 pub use label::Label;
-pub use table::Table;
+pub use table::{
+    Table,
+    TableSortingAlgorithm,
+};
 pub use table_row::TableRow;

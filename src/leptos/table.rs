@@ -27,6 +27,29 @@ extern "C" {
     fn tablesort(this: &Table);
 }
 
+/// Algorithms for sorting a table column.
+#[non_exhaustive]
+#[derive(Clone, Copy)]
+pub enum TableSortingAlgorithm {
+    /// The default, builtin sorting.
+    Default,
+    /// A custom float sorting algorithm.
+    Float,
+}
+
+impl std::fmt::Display for TableSortingAlgorithm {
+    fn fmt(
+        &self,
+        f: &mut std::fmt::Formatter<'_>,
+    ) -> Result<(), std::fmt::Error> {
+        let s = match self {
+            Self::Default => "",
+            Self::Float => "float",
+        };
+        write!(f, "{s}")
+    }
+}
+
 /// A `fomantic-ui` table.
 ///
 /// `D` defines the table data type.
@@ -40,6 +63,9 @@ pub fn Table<D, R>(
     column_heading: Vec<Box<dyn Fn(NodeRef<html::Th>) -> Fragment>>,
     /// A list of closures that return the contents of each column.
     columns: Vec<Box<dyn Fn(&R) -> Fragment>>,
+    /// Determines the sorting algorithm of the column.
+    #[prop(optional, into)]
+    column_sorting: MaybeSignal<Vec<TableSortingAlgorithm>>,
 ) -> impl IntoView
 where
     D: IntoIterator<Item = R> + Clone + 'static,
@@ -50,11 +76,26 @@ where
 
     let heading_items = column_heading
         .into_iter()
-        .map(|head| {
+        .enumerate()
+        .map(|(idx, head)| {
+            let sorting = column_sorting.clone();
             move || {
                 let ref_th = create_node_ref::<html::Th>();
+                let sorting_class = sorting
+                    .with(|sorting_vec| {
+                        sorting_vec.get(idx).map(|s| s.to_owned())
+                    })
+                    .map(|sort| sort.to_string())
+                    .unwrap_or("".to_string());
+                if !sorting_class.is_empty() {
+                    ref_th.on_load(move |th| {
+                        let _ = th.classes(sorting_class);
+                    });
+                }
+
                 view! {
-                    <th node_ref=ref_th>
+                    <th
+                        node_ref=ref_th>
                         { head(ref_th) }
                     </th>
                 }
